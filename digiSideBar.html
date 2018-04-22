@@ -1,0 +1,659 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/momentjs/2.14.1/moment-with-locales.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css">
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css">
+
+
+
+
+<script>
+$(document).ready(function () {
+
+  var trigger = $('.hamburger'),
+      overlay = $('.overlay'),
+     isClosed = false;
+
+    trigger.click(function () {
+      hamburger_cross();      
+    });
+
+    function hamburger_cross() {
+
+      if (isClosed == true) {          
+        overlay.hide();
+        trigger.removeClass('is-open');
+        trigger.addClass('is-closed');
+        isClosed = false;
+      } else {   
+        overlay.show();
+        trigger.removeClass('is-closed');
+        trigger.addClass('is-open');
+        isClosed = true;
+      }
+  }
+  
+  $('[data-toggle="offcanvas"]').click(function () {
+        $('#wrapper').toggleClass('toggled');
+  });
+
+  $('[data-toggle="tab"]').click(function () {
+        $('#wrapper').toggleClass('toggled');
+              hamburger_cross();     
+  });
+
+
+$('#datepicker').datepicker({
+    format: "yyyy-mm-dd",
+    todayBtn: "linked"
+});
+
+
+
+$('#accountData').selectize({
+    sortField: 'text'
+});
+
+
+$('#fieldsData').selectize({
+ maxItems: 12
+});
+
+
+
+});
+
+
+
+</script>   
+ <style>
+
+/* Shared */
+.loginBtn {
+  box-sizing: border-box;
+  position: relative;
+  /* width: 13em;  - apply for fixed size */
+  margin: 0.2em;
+  padding: 0 15px 0 46px;
+  border: none;
+  text-align: left;
+  line-height: 34px;
+  white-space: nowrap;
+  border-radius: 0.2em;
+  font-size: 16px;
+  color: #FFF;
+}
+.loginBtn:before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 100%;
+}
+.loginBtn:focus {
+  outline: none;
+}
+.loginBtn:active {
+  box-shadow: inset 0 0 0 32px rgba(0,0,0,0.1);
+}
+
+
+/* Facebook */
+.loginBtn--facebook {
+  background-color: #4C69BA;
+  background-image: linear-gradient(#4C69BA, #3B55A0);
+  /*font-family: "Helvetica neue", Helvetica Neue, Helvetica, Arial, sans-serif;*/
+  text-shadow: 0 -1px 0 #354C8C;
+}
+.loginBtn--facebook:before {
+  border-right: #364e92 1px solid;
+  background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/14082/icon_facebook.png') 6px 6px no-repeat;
+}
+.loginBtn--facebook:hover,
+.loginBtn--facebook:focus {
+  background-color: #5B7BD5;
+  background-image: linear-gradient(#5B7BD5, #4864B1);
+}
+
+
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+    background-color: #337ab7;
+    color:#ffffff;
+}
+//1
+body {
+    position: relative;
+    overflow-x: hidden;
+}
+body,
+html { height: 100%;}
+.nav .open > a, 
+.nav .open > a:hover, 
+.nav .open > a:focus {background-color: transparent;}
+
+/*-------------------------------*/
+/*           Wrappers            */
+/*-------------------------------*/
+
+#wrapper {
+    padding-left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#wrapper.toggled {
+    padding-left: 220px;
+}
+
+#sidebar-wrapper {
+    z-index: 1000;
+    left: 220px;
+    width: 0;
+    height: 100%;
+    margin-left: -220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #eaeaea;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#sidebar-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    width: 220px;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    padding-top: 70px;
+}
+
+#wrapper.toggled #page-content-wrapper {
+    position: absolute;
+    margin-right: -220px;
+}
+
+/*-------------------------------*/
+/*     Sidebar nav styles        */
+/*-------------------------------*/
+
+.sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 220px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sidebar-nav li {
+    position: relative; 
+    line-height: 20px;
+    display: inline-block;
+    width: 100%;
+}
+
+.sidebar-nav li:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    height: 100%;
+    width: 0px;
+    background-color: #eaeaea;
+    -webkit-transition: width .2s ease-in;
+      -moz-transition:  width .2s ease-in;
+       -ms-transition:  width .2s ease-in;
+            transition: width .2s ease-in;
+
+}
+
+.sidebar-nav li:hover {
+    background-color: #b7b5b5;
+    -webkit-transition: background-color .2s ease-in;
+      -moz-transition:  background-color .2s ease-in;
+       -ms-transition:  background-color .2s ease-in;
+            transition: background-color .2s ease-in;
+
+}
+
+.sidebar-nav li a {
+    display: block;
+    color: #2b2a2a;
+    text-decoration: none;
+    padding: 10px 15px 10px 30px;    
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li a:active,
+.sidebar-nav li a:focus,
+.sidebar-nav li.open a:hover,
+.sidebar-nav li.open a:active,
+.sidebar-nav li.open a:focus{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #03A9F4;
+}
+
+.sidebar-nav > .sidebar-brand {
+    font-size: 20px;
+}
+.sidebar-nav .dropdown-menu {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    background-color: #222;
+    box-shadow: none;
+}
+
+/*-------------------------------*/
+/*       Hamburger-Cross         */
+/*-------------------------------*/
+
+.hamburger {
+  position: fixed;
+  top: 20px;  
+  z-index: 999;
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin-left: 15px;
+  background: transparent;
+  border: none;
+}
+.hamburger:hover,
+.hamburger:focus,
+.hamburger:active {
+  outline: none;
+}
+.hamburger.is-closed:before {
+  content: '';
+  display: block;
+  width: 100px;
+  font-size: 14px;
+  color: #fff;
+  line-height: 32px;
+  text-align: center;
+  opacity: 0;
+  -webkit-transform: translate3d(0,0,0);
+  -webkit-transition: all .35s ease-in-out;
+}
+.hamburger.is-closed:hover:before {
+  opacity: 1;
+  display: block;
+  -webkit-transform: translate3d(-100px,0,0);
+  -webkit-transition: all .35s ease-in-out;
+}
+
+.hamburger.is-closed .hamb-top,
+.hamburger.is-closed .hamb-middle,
+.hamburger.is-closed .hamb-bottom,
+.hamburger.is-open .hamb-top,
+.hamburger.is-open .hamb-middle,
+.hamburger.is-open .hamb-bottom {
+  position: absolute;
+  left: 0;
+  height: 4px;
+  width: 30px;
+}
+.hamburger.is-closed .hamb-top,
+.hamburger.is-closed .hamb-middle,
+.hamburger.is-closed .hamb-bottom {
+  background-color: #1a1a1a;
+}
+.hamburger.is-closed .hamb-top { 
+  top: 5px; 
+  -webkit-transition: all .35s ease-in-out;
+}
+.hamburger.is-closed .hamb-middle {
+  top: 50%;
+  margin-top: -2px;
+}
+.hamburger.is-closed .hamb-bottom {
+  bottom: 5px;  
+  -webkit-transition: all .35s ease-in-out;
+}
+
+.hamburger.is-closed:hover .hamb-top {
+  background-color: #000000;
+  -webkit-transition: all .35s ease-in-out;
+}
+.hamburger.is-closed:hover .hamb-bottom {
+  background-color: #000000;
+  -webkit-transition: all .35s ease-in-out;
+}
+.hamburger.is-open .hamb-top,
+.hamburger.is-open .hamb-middle,
+.hamburger.is-open .hamb-bottom {
+  background-color: #1a1a1a;
+}
+.hamburger.is-open .hamb-top,
+.hamburger.is-open .hamb-bottom {
+  top: 50%;
+  margin-top: -2px;  
+}
+.hamburger.is-open .hamb-top { 
+  -webkit-transform: rotate(45deg);
+  -webkit-transition: -webkit-transform .2s cubic-bezier(.73,1,.28,.08);
+}
+.hamburger.is-open .hamb-middle { display: none; }
+.hamburger.is-open .hamb-bottom {
+  -webkit-transform: rotate(-45deg);
+  -webkit-transition: -webkit-transform .2s cubic-bezier(.73,1,.28,.08);
+}
+.hamburger.is-open:before {
+  content: '';
+  display: block;
+  width: 100px;
+  font-size: 14px;
+  color: #fff;
+  line-height: 32px;
+  text-align: center;
+  opacity: 0;
+  -webkit-transform: translate3d(0,0,0);
+  -webkit-transition: all .35s ease-in-out;
+}
+.hamburger.is-open:hover:before {
+  opacity: 1;
+  display: block;
+  -webkit-transform: translate3d(-100px,0,0);
+  -webkit-transition: all .35s ease-in-out;
+}
+
+/*-------------------------------*/
+/*            Overlay            */
+/*-------------------------------*/
+
+.overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(250,250,250,.8);
+    z-index: 1;
+}
+
+
+</style>
+
+  <base target="_top">
+     <div id="wrapper">
+        <div class="overlay"></div>
+    
+        <!-- Sidebar -->
+        <nav class="navbar navbar-inverse navbar-fixed-top" id="sidebar-wrapper" role="navigation">
+            <ul class="nav sidebar-nav nav-tabs">
+                <li class="sidebar-brand">
+                    <a href=''>
+                       Digishuffle
+                    </a>
+                </li>
+                <li>
+                    <a href="#ads" data-toggle='tab' >Ads (GA Format)</a>
+                </li>
+                <li>
+                    <a href="#credits" data-toggle='tab'>About</a>
+                </li>
+                <li>
+                    <a href="#premium" data-toggle='tab'>Premium</a>
+                </li>
+            </ul>
+        </nav>
+        <!-- /#sidebar-wrapper -->
+
+
+        <!-- Page Content -->
+        <div class="tab-content">
+        
+        <!-- Home -->
+        <div id="ads" class="tab-pane fade in active">
+        <div id="page-content-wrapper">
+            <div class="hamburger is-closed" data-toggle="offcanvas">
+                <span class="hamb-top"></span>
+    			<span class="hamb-middle"></span>
+				<span class="hamb-bottom"></span>
+            </div>
+            <div class="container">
+            
+            
+           <? if(!getService().hasAccess()) { ?> 
+                <div class="row">
+                    <div class="col-md-12 col-lg-12">
+                    <p style="font-size:25px;">Features:</p>
+                   <ul>
+                   <li>Facebook Ads Export</li>
+                   <li>Unlimited Rows</li>
+                   <li>UTM Export Feature</li>
+                   <li>Currency Converter</li>
+                   <li>Scheduling Feature</li>
+                   <li>GA Upload Feature</li>
+                   </ul>
+                    </div>
+                </div>
+                <br />
+     <div class="row">
+    <div class="col-md-12" align='center'>
+    <a class="loginBtn loginBtn--facebook btn btn-info" href='<?=getService().getAuthorizationUrl()?>' target='_blank'>Authorize Facebook</a>
+    </div>
+    </div>
+    
+    <? } else { ?>
+    
+    <p style='color:green'>Authorization Success</p>
+    
+<div class="form-group">
+<label for="accountData">Select Account:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Account To Export"></span>
+<select id="accountData" style="width: 100%">
+ <? if (getService().hasAccess()) { ?>
+ <? var data = adAccounts() ?>
+ <? if (data != false) { ?>
+<? data = data['facebookAccountData'] ?>
+<optgroup label="Ad Accounts">
+<? for (i=0; i<data.length; i++) { ?>
+    <option value="<?= data[i]['account_id'] ?>" data-type="facebookAds"><?= data[i]['name'] ?> (<?= data[i]['account_id'] ?>)</option>
+   <? } ?>
+</optgroup>
+ 
+ <? } ?>
+ 
+   <? } ?>
+   
+   </select>
+</div>    
+
+<label for="input-date">Select Date Range:</label>
+<div class="input-daterange input-group" id="datepicker">
+    <input type="text" class="input-sm form-control" id='startDate' name="start" />
+    <span class="input-group-addon">to</span>
+    <input type="text" class="input-sm form-control" id='endDate' name="end" />
+</div>
+<br />
+<div class="form-group">
+<label for="fieldsData">Select Fields:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Fields To Export"></span>
+<select id="fieldsData" style="width: 100%" multiple>
+ <? var data = preDefinedVariables() ?>
+ <? if (data != false) { ?>
+<? data = data['adAccountUIFields'] ?>
+<? for (i=0; i<data.length; i++) { ?>
+    <option value="<?= data[i] ?>"><?= data[i] ?></option>
+   <? } ?>
+
+ 
+ <? } ?>
+
+   </select>
+</div>    
+
+<div class="form-group">
+<button class='btn btn-primary' id='exportData'>Export</button>
+</div>
+
+<div class="form-group" id='progressBar' style="display:none">
+<div class="progress">
+  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id='bar'></div>
+</div>
+    </div>
+    <? } ?>
+    
+            </div> <!-- Container -->
+        
+        
+        
+        </div>
+        </div> 
+        <!-- Home -->
+        
+        <!-- Contact -->
+         <div id="credits" class="tab-pane fade in">
+        <div id="page-content-wrapper">
+            <div class="hamburger is-closed" data-toggle="offcanvas">
+                <span class="hamb-top"></span>
+    			<span class="hamb-middle"></span>
+				<span class="hamb-bottom"></span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 col-xs-12">
+                        <p><b>About:</b></p>
+          <p>My name is Ritwik B, a web analyst & growth hacking consultant,also the creator of this DIY addon. The detailed article & documentation is available <a href='https://www.digishuffle.com/blogs/cost-data-import-facebook-to-google-analytics/'>here</a>.
+          .Also, if you face any problems, drop me a message <a href="https://www.digishuffle.com/contact/">here</a>. The addon is updated once every 2-3 month. Feel Free To Add Me On <a href="https://www.linkedin.com/in/ritwik-b-441a7292/">LinkedIn</a> Or Follow <a href="https://twitter.com/RitwikGA">Here.</a></p>
+            <br />
+            <p><b>Credits:</b></p>
+            <p>Thanks to the various resources available on the web which made this possible.</p>
+            <ul><li><a href="https://github.com/googlesamples/apps-script-oauth2">OAuth2 Library</a> by Google</li>
+            <li>UI By <a href="https://twitter.com/MariDlCrmn">MariDlCrmn</a></li>
+            <li>Google Analytics Cost Data Upload Script By <a href="http://www.ryanpraski.com/google-analytics-cost-data-import-google-sheets-automated">Ryan</a></li>
+            </ul>
+            
+            <br />
+            <p><b>Updates:</b></p>
+            <p>You can subscribe for the script updates by clicking on the button below. You will be subscribed on the <?= Session.getActiveUser().getEmail() ?> email.</p>
+            <a class="btn btn-default" href="http://eepurl.com/dsk6z1">Subscribe</a>
+            
+            <br />
+            <br />
+            <p><b>Privacy Policy:</b></p>
+            <p>We don't collect any data at our end. We try to keep it the script updated with latest release. But we cannot guarantee or will not be responsible for any damage, if any, resulting from the addon</p>
+            
+            </div>
+                </div>
+                
+    
+            </div>
+        </div>
+        </div> 
+        <!-- Contact -->
+        
+        
+        <!-- DigiXport -->
+         <div id="premium" class="tab-pane fade in">
+        <div id="page-content-wrapper">
+            <div class="hamburger is-closed" data-toggle="offcanvas">
+                <span class="hamb-top"></span>
+    			<span class="hamb-middle"></span>
+				<span class="hamb-bottom"></span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 col-xs-12">
+            <p><b>DigiXport - Reporting Add-On:</b></p>
+            <p>If you like this addon, kindly check out our <a href="https://www.digishuffle.com/digixport/">premium reporting tool</a>. If you are a digital agency or freelancer running multiple campaigns for clients, you'll really find these features helpful.</p>
+            <ul>
+            <li>Facebook,Bing & Adwords Connectors</li>
+            <li>Multiple Account Export</li>
+            <li>Save & Export Mutiple Queries</li>
+            <li>Schedule Multiple Queries</li>
+            <li>Currency Multiplier / GA Uploader</li>
+            <li>& more...</li>
+            </ul>
+            <br />
+            <p>600+ Downloads & 4.5+ Rating On Google Webstore.</p>
+            <a class='btn btn-primary' href="https://chrome.google.com/webstore/detail/digixport/hoknfcbkgepepokgccdlihjdaekoocip">Download Now</a>
+            </div>
+                </div>
+                
+    
+            </div>
+        </div>
+        </div> 
+        <!-- DigiXport -->
+        
+        
+        
+        </div>
+        <!-- /#page-content-wrapper -->
+
+<br />
+<br />
+<div align="center" class="col-md-12">
+<a href='https://www.digishuffle.com/blogs/cost-data-import-facebook-to-google-analytics/'><img src="https://www.digishuffle.com/wp-content/uploads/2017/06/Logo-Black-3dGraph.png" style="height:40px;width:60px">
+</a><p style="font-size:12px"> Digishuffle - Analytics </p>
+</div>
+
+
+    </div>
+
+<!-- /#wrapper -->
+
+
+<script>
+$('#exportData').on('click',function(){
+$(this).attr("disabled", "disabled");
+$('#progressBar').show()
+progressBar();
+var accountId = $('#accountData').val();
+var startDate = $('#startDate').val();
+var endDate = $('#endDate').val()
+var fields = $('#fieldsData').val();
+fields=fields.join(',')
+google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(accountId, fields, '', startDate, endDate, <?=preDefinedVariables()['source'] ?> , <?=preDefinedVariables()['medium'] ?>, <?=preDefinedVariables()['pos'] ?>, <?=preDefinedVariables()['limit'] ?>)
+})
+
+function stopProgress(){
+$('#exportData').removeAttr("disabled");   
+$('#progressBar').hide();
+$('#bar').width('0%')
+$('#bar').text('0%')
+}
+
+function progressBar() {
+    var elem = document.getElementById("bar");
+    var width = 10;
+    var id = setInterval(frame, 10);
+    function frame() {
+        if (width >= 95) {
+            clearInterval(id);
+        } else {
+            width++; 
+            elem.style.width = width + '%'; 
+            elem.innerHTML = width * 1 + '%';
+        }
+    }
+}
+</script>
