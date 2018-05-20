@@ -194,13 +194,15 @@ if(parseData.data.length>0)
   
 var parseData = nextTokenData(parseData)
 
-  var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  
-if(sheet.getLastRow() > 0 && sheet.getLastColumn() > 0)
-{sheet.getRange(pos.split(',')[0],pos.split(',')[1],sheet.getLastRow(),sheet.getLastColumn()).clear();}
+var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
 
+ if(typeof(pos) == 'string')
+{pos = pos.split(',')}
+
+if(sheet.getLastRow() > 0 && sheet.getLastColumn() > 0)
+{sheet.getRange(pos[0],pos[1],sheet.getLastRow(),sheet.getLastColumn()).clear();}
   
-  sheet.getRange(pos.split(',')[0], pos.split(',')[1], parseData.data.length, Object.keys(parseData.data[0]).length).setValues(parser(parseData,parsed_utms_data,SOURCE,MEDIUM))
+sheet.getRange(pos[0], pos[1], parseData.data.length, Object.keys(parseData.data[0]).length).setValues(parser(parseData,parsed_utms_data,SOURCE,MEDIUM))
 try{  
 SpreadsheetApp.getUi().alert("REPORTS SUCCESS...!!!");
 } catch (e) {return }
