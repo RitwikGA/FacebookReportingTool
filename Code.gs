@@ -1,6 +1,8 @@
 /* Facebook Cost Data Upload in Google Analytics 
  * Description: Uploads Facebook (API v2.11) Cost Data in Google Analytics.
  * @Ritwikga www.Digishuffle.com
+ * Updated: 20-06-2018
+ * - API v3.0
  *
  * Updated: 23-04-2018
  * - Added SideBar
@@ -133,7 +135,7 @@ return str
 function makeRequest(FB_AD_ACCOUNT_ID, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit) {
 //
   var fbRequest = getService(); 
- var requestEndpoint = "https://graph.facebook.com/v2.11/act_"+FB_AD_ACCOUNT_ID+"/insights?"
+ var requestEndpoint = "https://graph.facebook.com/v3.0/act_"+FB_AD_ACCOUNT_ID+"/insights?"
   var param = { 'level' : 'ad',  
                'fields': 'ad_id,'+FB_FIELDS,
                'time_increment': '1',
@@ -166,7 +168,7 @@ var parseData = JSON.parse(response)
   }
  
 //
-  var utms_endpoint = "https://graph.facebook.com/v2.11/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
+  var utms_endpoint = "https://graph.facebook.com/v3.0/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
   
   var utms_ads = UrlFetchApp.fetch(utms_endpoint, 
   {
@@ -332,7 +334,7 @@ function getService() {
   return OAuth2.createService('Facebook')
       // Set the endpoint URLs.
       .setAuthorizationBaseUrl('https://www.facebook.com/dialog/oauth')
-      .setTokenUrl('https://graph.facebook.com/v2.11/oauth/access_token')
+      .setTokenUrl('https://graph.facebook.com/v3.0/oauth/access_token')
 
       // Set the client ID and secret.
       .setClientId(CLIENT_ID)
@@ -392,7 +394,7 @@ function preDefinedVariables(){
 function adAccounts(){
 
  var fbRequest = getService(); 
-  var addaccounts_endpoint = "https://graph.facebook.com/v2.12/me?fields=adaccounts.limit(100)%7Bname,account_id%7D,email" 
+  var addaccounts_endpoint = "https://graph.facebook.com/v3.0/me?fields=adaccounts.limit(100)%7Bname,account_id%7D,email" 
  
   var adAccountInfo = UrlFetchApp.fetch(addaccounts_endpoint, 
   {
