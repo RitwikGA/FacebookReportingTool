@@ -198,10 +198,6 @@ var parseData = JSON.parse(response)
   var parsed_utms_data = nextTokenData(parsed_utms)
 
  //
-
-if(parseData.data.length>0)
-{
-
 var parseData = nextTokenData(parseData)
 
 var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
@@ -211,6 +207,9 @@ var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
 
 if(sheet.getLastRow() > 0 && sheet.getLastColumn() > 0)
 {sheet.getRange(pos[0],pos[1],sheet.getLastRow(),sheet.getLastColumn()).clear();}
+
+if(parseData.data.length>0)
+{
 
 var Values = parser(parseData, parsed_utms_data, SOURCE, MEDIUM, BREAKDOWN_KEY, BREAKDOWN_VALUE)
 if(Values.length == 0)
