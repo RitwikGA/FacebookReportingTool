@@ -68,6 +68,9 @@ $('#fieldsData').selectize({
 });
 
 
+$('#levelData').selectize({
+ sortField: 'text'
+});
 
 });
 
@@ -494,6 +497,24 @@ html { height: 100%;}
     <input type="text" class="input-sm form-control" id='endDate' name="end" />
 </div>
 <br />
+
+<div class="form-group">
+<label for="levelData">Select Level:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Level To Export Your Data"></span>
+<select id="levelData" style="width: 100%">
+ <? var data = preDefinedVariables() ?>
+ <? if (data != false) { ?>
+<? data = data['adAccountLevels'] ?>
+<? for (i=0; i<data.length; i++) { ?>
+    <option value="<?= data[i] ?>"><?= data[i] ?></option>
+   <? } ?>
+
+ 
+ <? } ?>
+
+   </select>
+</div>    
+
+
 <div class="form-group">
 <label for="fieldsData">Select Fields:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Fields To Export"></span>
 <select id="fieldsData" style="width: 100%" multiple>
@@ -509,6 +530,14 @@ html { height: 100%;}
 
    </select>
 </div>    
+
+<!-- Default checked -->
+<div class="custom-control custom-checkbox">
+  <input type="checkbox" class="custom-control-input" id="ga_upload_format" checked>
+  <label class="custom-control-label" for="ga_upload_format">GA Upload Format</label>
+</div>
+<br />
+
 
 <div class="form-group">
 <button class='btn btn-primary' id='exportData'>Export</button>
@@ -631,8 +660,10 @@ var accountId = $('#accountData').val();
 var startDate = $('#startDate').val();
 var endDate = $('#endDate').val()
 var fields = $('#fieldsData').val();
+var levels = $('#levelData').val();
+var isGaUpload = $('#ga_upload_format').prop('checked');
 fields=fields.join(',')
-google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(accountId, fields, '', startDate, endDate, <?=preDefinedVariables()['source'] ?> , <?=preDefinedVariables()['medium'] ?>, <?=preDefinedVariables()['pos'] ?>, <?=preDefinedVariables()['limit'] ?>)
+google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(accountId, levels, fields, '', startDate, endDate, <?=preDefinedVariables()['source'] ?> , <?=preDefinedVariables()['medium'] ?>, <?=preDefinedVariables()['pos'] ?>, <?=preDefinedVariables()['limit'] ?>,isGaUpload)
 })
 
 function stopProgress(){
