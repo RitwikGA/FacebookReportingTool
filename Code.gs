@@ -1,10 +1,11 @@
-/* Facebook Cost Data Upload in Google Analytics 
- * Description: Uploads Facebook (API v2.11) Cost Data in Google Analytics.
+/* Facebook Reporting & Cost Data Upload in Google Analytics 
+ * Description: Uploads Facebook (API v3.1) Cost Data in Google Analytics.
  * @Ritwikga www.Digishuffle.com
  *
- * Updated: 23-04-2018
- * - Added SideBar
- * - Bugs Fix
+ * Updated: 26-08-2018
+ * - Latest Version v3.1
+ * - Facebook Export Functionality
+ * - Level Added in UI
  *
  * Updated: 26-01-2018
  * - Currency Multiplier
@@ -24,21 +25,23 @@
 
 ///// Facebook Details ///////
 
-var CLIENT_ID = '';     // Insert App ID                                        
+var CLIENT_ID = '' ;     // Insert App ID                                        
 
-var CLIENT_SECRET = ''; // Insert App Secret
+var CLIENT_SECRET = '';  //; // Insert App Secret
 
 var FB_AD_ACCOUNT_ID = ''   //Ad Account Id
 
-var FB_FIELDS = '';
+var FB_FIELDS = 'clicks,spend,impressions,campaign_name,adset_name,ad_name';
 
-// More FB_FIELDS at https://developers.facebook.com/docs/marketing-api/insights/fields/v2.10 
+var FB_LEVEL = 'ad'; // ad,adset,campaign,account 
+
+// More FB_FIELDS at https://developers.facebook.com/docs/marketing-api/insights/fields/v2.3 
 
 var pos = [2,1]     //Spreadsheet Cell Position
 
 var DATE_RANGE='';    //today, yesterday, this_month, last_month, this_quarter, etc 
 
-//More DATE_RANGE at https://developers.facebook.com/docs/marketing-api/insights/parameters/v2.10 (date_preset paramteter)
+//More DATE_RANGE at https://developers.facebook.com/docs/marketing-api/insights/parameters/v2.3 (date_preset paramteter)
 
 //// To use below date range, make sure DATE_RANGE='' ///// 
 var start_date='2017-01-01';                // custom date range
@@ -55,8 +58,8 @@ var limit = 100;      //Facebook Graph API Limit per request
 
 
 //// Google Analytics Data /////////
-var ACCOUNT_ID = "";                      //Account ID
-var PROPERTY_ID = "";                     //Property ID
+var ACCOUNT_ID = "";                                    //Account ID
+var PROPERTY_ID = "";                              //Property ID
 var DATASET_ID = "";                      //Data set upload ID
  
 
@@ -74,6 +77,7 @@ var subject = ''                        // Enter Subject Line For Email Else It 
 var adAccountUIFields = ['account_currency','account_id','account_name','ad_name','adset_name','campaign_name','clicks','impressions','cpc','cpm','date_start','date_stop'
                          ,'reach','spend','unique_clicks']   /// The Columns To Be Populated in the Fields Box in the UI.
 
+var adAccountLevels = ['ad','adset','campaign','account']   /// The Columns To Be Populated in the Fields Box in the UI.
 
 /**
 *
@@ -98,7 +102,7 @@ sheet.clear()
 }
 
 function facebookData()
-{ makeRequest(FB_AD_ACCOUNT_ID, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit) }
+{ makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit) }
   
 function uploadDataToGa()
 {  uploadData(ACCOUNT_ID, PROPERTY_ID, DATASET_ID) }
@@ -130,16 +134,23 @@ for (var key in param) {
 return str
 }
 
-function makeRequest(FB_AD_ACCOUNT_ID, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit) {
+function makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit,isGaUpload) {
 //
   var fbRequest = getService(); 
- var requestEndpoint = "https://graph.facebook.com/v2.11/act_"+FB_AD_ACCOUNT_ID+"/insights?"
-  var param = { 'level' : 'ad',  
-               'fields': 'ad_id,'+FB_FIELDS,
-               'time_increment': '1',
-               'limit' : limit
-              }
-   
+ var requestEndpoint = "https://graph.facebook.com/v3.1/act_"+FB_AD_ACCOUNT_ID+"/insights?"
+ var param = {'limit':limit,'level': FB_LEVEL}
+ 
+ if(isGaUpload) {
+  param['fields'] = 'ad_id,'+FB_FIELDS
+  param['time_increment'] = '1'
+ } else {
+ param['fields'] = FB_FIELDS
+ }
+  
+
+
+  
+  
   if(DATE_RANGE!="")
      {   param['date_preset'] = DATE_RANGE ;}
   else if(start_date!=""&&end_date!="") 
@@ -166,8 +177,8 @@ var parseData = JSON.parse(response)
   }
  
 //
-  var utms_endpoint = "https://graph.facebook.com/v2.11/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
-  
+  if(isGaUpload){
+  var utms_endpoint = "https://graph.facebook.com/v3.1/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
   var utms_ads = UrlFetchApp.fetch(utms_endpoint, 
   {
     headers: {
@@ -186,7 +197,7 @@ var parseData = JSON.parse(response)
   }
   
   var parsed_utms_data = nextTokenData(parsed_utms)
-  
+  }
  //
 
 if(parseData.data.length>0)
@@ -194,23 +205,28 @@ if(parseData.data.length>0)
   
 var parseData = nextTokenData(parseData)
 
-var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  
 
- if(typeof(pos) == 'string')
+if(typeof(pos) == 'string')
 {pos = pos.split(',')}
-
+  
 if(sheet.getLastRow() > 0 && sheet.getLastColumn() > 0)
 {sheet.getRange(pos[0],pos[1],sheet.getLastRow(),sheet.getLastColumn()).clear();}
+var finalParsedOutput = []
   
-sheet.getRange(pos[0], pos[1], parseData.data.length, Object.keys(parseData.data[0]).length).setValues(parser(parseData,parsed_utms_data,SOURCE,MEDIUM))
-try{  
+  
+if(isGaUpload){ finalParsedOutput=parser(parseData,parsed_utms_data,SOURCE,MEDIUM)}
+  else{ finalParsedOutput = parserNonGA(parseData) }
+
+sheet.getRange(pos[0], pos[1], finalParsedOutput.length, finalParsedOutput[0].length).setValues(finalParsedOutput)
+  
+  
+  try{  
 SpreadsheetApp.getUi().alert("REPORTS SUCCESS...!!!");
 } catch (e) {return }
   
 } else {SpreadsheetApp.getUi().alert('No Facebook Data For The Applied Date Range'); return;}
-
-
-
 };
  
 
@@ -275,6 +291,26 @@ if (/utm_content=([^&]+)/i.exec(tags) != null)
 return ids_obj
 } } }
 
+function parserNonGA(parseData){
+
+var data=parseData.data;  
+var rw=[];
+  rw[0]=[]
+  for (key in data[0]){
+ rw[0].push(key.replace(/\,|\'|\"/g,''))
+  }  
+for (var i = 0; i < data.length; i++)
+{
+ rw[i+1]=[]
+ for (key in data[i])
+ {
+    rw[i+1].push(data[i][key].replace(/\,|\'|\"/g,''))
+ }
+
+}
+return rw
+}
+
 function parser(parseData,parsed_utms_data,SOURCE,MEDIUM)
 {
   
@@ -332,7 +368,7 @@ function getService() {
   return OAuth2.createService('Facebook')
       // Set the endpoint URLs.
       .setAuthorizationBaseUrl('https://www.facebook.com/dialog/oauth')
-      .setTokenUrl('https://graph.facebook.com/v2.11/oauth/access_token')
+      .setTokenUrl('https://graph.facebook.com/v3.1/oauth/access_token')
 
       // Set the client ID and secret.
       .setClientId(CLIENT_ID)
@@ -386,13 +422,40 @@ function successUI(isAuth){
 
 function preDefinedVariables(){
 
-  return {'adAccountUIFields':adAccountUIFields,'source':SOURCE,'medium':MEDIUM,'pos':pos,'limit':limit}
+  return {'adAccountLevels':adAccountLevels,'adAccountUIFields':adAccountUIFields,'source':SOURCE,'medium':MEDIUM,'pos':pos,'limit':limit}
 }
+
+
+//function managedPages(){
+//
+// var fbRequest = getService(); 
+//  var endpoint = "https://graph.facebook.com/v3.1/me/accounts" 
+// 
+//  var adAccountInfo = UrlFetchApp.fetch(endpoint, 
+//  {
+//    headers: {
+//      'Authorization': 'Bearer ' + fbRequest.getAccessToken()
+//  },
+//    muteHttpExceptions : true
+//  }) 
+//  
+//  var parsedadAccountInfo = JSON.parse(adAccountInfo)
+// if(parsedadAccountInfo.data.length > 0){
+// var managedPages = []
+// 
+//   for(var i=0;i<parsedadAccountInfo.data.length;i++){
+//   managedPages.push({'page':parsedadAccountInfo.data[i].name,'id':parsedadAccountInfo.data[i].id})
+//   }
+//   } 
+//  else {return false}
+// Logger.log(managedPages) 
+// return { 'managedPages':managedPages } 
+//}
 
 function adAccounts(){
 
  var fbRequest = getService(); 
-  var addaccounts_endpoint = "https://graph.facebook.com/v2.12/me?fields=adaccounts.limit(100)%7Bname,account_id%7D,email" 
+  var addaccounts_endpoint = "https://graph.facebook.com/v3.1/me?fields=adaccounts.limit(100)%7Bname,account_id%7D,email" 
  
   var adAccountInfo = UrlFetchApp.fetch(addaccounts_endpoint, 
   {
@@ -411,7 +474,7 @@ function adAccounts(){
   parsed_adurls['adaccounts'] = adAccountFB
   
    }
-  
+  Logger.log(parsed_adurls.adaccounts.data)
     return { 'facebookAccountData':parsed_adurls.adaccounts.data } 
 
 
