@@ -1,9 +1,14 @@
 /* Facebook Reporting & Cost Data Upload in Google Analytics 
- * Description: Uploads Facebook (API v3.1) Cost Data in Google Analytics.
+ * Description: Uploads Facebook (API v3.2) Cost Data in Google Analytics.
  * @Ritwikga www.Digishuffle.com
  *
  * Updated: 26-08-2018
- * - Latest Version v3.1
+ * - Latest Version v3.2
+ * - Date Range Functionality
+ * - Bug Fixes
+ *
+ * Updated: 26-08-2018
+ * - Version v3.1
  * - Facebook Export Functionality
  * - Level Added in UI
  *
@@ -39,7 +44,7 @@ var FB_LEVEL = 'ad'; // ad,adset,campaign,account
 
 var pos = [2,1]     //Spreadsheet Cell Position
 
-var DATE_RANGE='';    //today, yesterday, this_month, last_month, this_quarter, etc 
+var DATE_RANGE='last_month';    //today, yesterday, this_month, last_month, this_quarter, etc 
 
 //More DATE_RANGE at https://developers.facebook.com/docs/marketing-api/insights/parameters/v2.3 (date_preset paramteter)
 
@@ -57,7 +62,7 @@ var limit = 100;      //Facebook Graph API Limit per request
 
 
 
-//// Google Analytics Data /////////
+//// Google Analytics Data (Optional: Only for GA upload feature) /////////
 var ACCOUNT_ID = "";                                    //Account ID
 var PROPERTY_ID = "";                              //Property ID
 var DATASET_ID = "";                      //Data set upload ID
@@ -87,16 +92,12 @@ var adAccountLevels = ['ad','adset','campaign','account']   /// The Columns To B
 
 
 function showBar() {
-
 var html=HtmlService.createTemplateFromFile('digiSideBar').evaluate().setTitle("Facebook Reporting Tool").setWidth(300)
-//setSandboxMode(HtmlService.SandboxMode.NATIVE).setTitle("GA Audit Tool").setWidth(300)
-
 SpreadsheetApp.getUi().showSidebar(html)
 }
 
 
 function clear(){
-
 var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
 sheet.clear()
 }
@@ -113,7 +114,6 @@ SpreadsheetApp.getUi().createMenu('Cost Data').addSubMenu(SpreadsheetApp.getUi()
 
 }
 
-
 function fbAuth(){
   var UI=HtmlService.createTemplate("<b><a href='<?=getService().getAuthorizationUrl()?>' target='_blank'>Click To Authorize</a></b><br /><? if(getService().hasAccess())"+ 
                                     "{ ?> <?!= <p><span style='color:green'>Authorized Successfully</span></p> } else {?> <?!= <p><span style='color:red'>Not Authorized</span></p> }").evaluate() 
@@ -124,7 +124,7 @@ function fbAuth(){
 
 function jsonToQuery(param)
 {
-  var str = "";
+var str = "";
 for (var key in param) {
     if (str != "") {
         str += "&";
@@ -137,7 +137,7 @@ return str
 function makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit,isGaUpload) {
 //
   var fbRequest = getService(); 
- var requestEndpoint = "https://graph.facebook.com/v3.1/act_"+FB_AD_ACCOUNT_ID+"/insights?"
+ var requestEndpoint = "https://graph.facebook.com/v3.2/act_"+FB_AD_ACCOUNT_ID+"/insights?"
  var param = {'limit':limit,'level': FB_LEVEL}
  
  if(isGaUpload) {
@@ -147,23 +147,19 @@ function makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_dat
  param['fields'] = FB_FIELDS
  }
   
-
-
+if(DATE_RANGE!="")
+{   param['date_preset'] = DATE_RANGE ;}
+else if(start_date!=""&&end_date!="") 
+{ param['time_range[since]']=start_date;param['time_range[until]']=end_date; dateRangeUsed=false}
+else {  SpreadsheetApp.getUi().alert("Enter Correct Date Range!!")}
   
-  
-  if(DATE_RANGE!="")
-     {   param['date_preset'] = DATE_RANGE ;}
-  else if(start_date!=""&&end_date!="") 
-  { param['time_range[since]']=start_date;param['time_range[until]']=end_date; dateRangeUsed=false}
-  else {  SpreadsheetApp.getUi().alert("Enter Correct Date Range!!")}
-  
-  var response = UrlFetchApp.fetch(requestEndpoint + jsonToQuery(param), 
-  {
-    headers: {
+var response = UrlFetchApp.fetch(requestEndpoint + jsonToQuery(param), 
+{
+headers: {
       'Authorization': 'Bearer ' + fbRequest.getAccessToken()
   },
     muteHttpExceptions : true
-  })
+})
 
 
 var parseData = JSON.parse(response)
@@ -178,7 +174,7 @@ var parseData = JSON.parse(response)
  
 //
   if(isGaUpload){
-  var utms_endpoint = "https://graph.facebook.com/v3.1/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
+  var utms_endpoint = "https://graph.facebook.com/v3.2/act_"+FB_AD_ACCOUNT_ID+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
   var utms_ads = UrlFetchApp.fetch(utms_endpoint, 
   {
     headers: {
@@ -204,9 +200,7 @@ if(parseData.data.length>0)
 {
   
 var parseData = nextTokenData(parseData)
-
-  var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  
+var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];  
 
 if(typeof(pos) == 'string')
 {pos = pos.split(',')}
@@ -223,7 +217,7 @@ sheet.getRange(pos[0], pos[1], finalParsedOutput.length, finalParsedOutput[0].le
   
   
   try{  
-SpreadsheetApp.getUi().alert("REPORTS SUCCESS...!!!");
+    SpreadsheetApp.getUi().alert("REPORTS EXPORTED FOR DATE RANGE: "+start_date+" TO "+end_date+"\n ACCOUNT_ID: "+FB_AD_ACCOUNT_ID+"\n ROWS: "+finalParsedOutput.length);
 } catch (e) {return }
   
 } else {SpreadsheetApp.getUi().alert('No Facebook Data For The Applied Date Range'); return;}
@@ -368,7 +362,7 @@ function getService() {
   return OAuth2.createService('Facebook')
       // Set the endpoint URLs.
       .setAuthorizationBaseUrl('https://www.facebook.com/dialog/oauth')
-      .setTokenUrl('https://graph.facebook.com/v3.1/oauth/access_token')
+      .setTokenUrl('https://graph.facebook.com/v3.2/oauth/access_token')
 
       // Set the client ID and secret.
       .setClientId(CLIENT_ID)
@@ -455,7 +449,7 @@ function preDefinedVariables(){
 function adAccounts(){
 
  var fbRequest = getService(); 
-  var addaccounts_endpoint = "https://graph.facebook.com/v3.1/me?fields=adaccounts.limit(100)%7Bname,account_id%7D,email" 
+  var addaccounts_endpoint = "https://graph.facebook.com/v3.2/me?fields=adaccounts.limit(100)%7Bname,account_id%7D" 
  
   var adAccountInfo = UrlFetchApp.fetch(addaccounts_endpoint, 
   {
