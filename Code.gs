@@ -62,6 +62,10 @@ var limit = 100;      //Facebook Graph API Limit per request
 
 
 
+//// GA Upload Format ////
+var isGaUpload = true;
+
+
 //// Google Analytics Data (Optional: Only for GA upload feature) /////////
 var ACCOUNT_ID = "";                                    //Account ID
 var PROPERTY_ID = "";                              //Property ID
@@ -103,7 +107,7 @@ sheet.clear()
 }
 
 function facebookData()
-{ makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit) }
+{ makeRequest(FB_AD_ACCOUNT_ID,FB_LEVEL, FB_FIELDS, DATE_RANGE, start_date, end_date, SOURCE, MEDIUM, pos, limit,isGaUpload) }
   
 function uploadDataToGa()
 {  uploadData(ACCOUNT_ID, PROPERTY_ID, DATASET_ID) }
