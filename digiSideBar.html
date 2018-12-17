@@ -72,7 +72,80 @@ $('#levelData').selectize({
  sortField: 'text'
 });
 
+
+$('#dateRangepre').selectize();
+
+
+
+
+$('#dateRangepre').on('change', function(){
+switch($(this).val())
+{
+case 'today':
+var s = moment().format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', s);
+break;
+
+case 'yesterday':
+var e = moment().subtract(1,'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', e);
+$('#endDate').datepicker('update', e);
+break;
+
+case 'last_7d':
+var s = moment().subtract(7,'days').format("YYYY-MM-DD")
+var e = moment().subtract(1,'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+break;
+
+case 'last_14d':
+var s = moment().subtract(14,'days').format("YYYY-MM-DD")
+var e = moment().subtract(1,'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+break;
+
+case 'last_30d':
+var s = moment().subtract(30,'days').format("YYYY-MM-DD")
+var e = moment().subtract(1,'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+break;
+
+case 'last_90d':
+var s = moment().subtract(90,'days').format("YYYY-MM-DD")
+var e = moment().subtract(1,'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+
+break;
+
+case 'this_month':
+var s = moment().subtract(moment().date()-1,'days').format("YYYY-MM-DD")
+var e = moment().format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+
+break;
+
+case 'last_month':
+var s = moment().subtract(1,'month').subtract(moment().date()-1,'days').format("YYYY-MM-DD")
+var e = moment().subtract(moment().date(),'days').format("YYYY-MM-DD")
+$('#startDate').datepicker('update', s);
+$('#endDate').datepicker('update', e);
+
+
+}
+//
+})
+
+
 });
+
+// Datepicker - Predefined Date range //
+
 
 
 
@@ -497,6 +570,22 @@ html { height: 100%;}
     <input type="text" class="input-sm form-control" id='endDate' name="end" />
 </div>
 <br />
+
+<div class="form-group">
+<select id="dateRangepre" style="width: 100%">
+<option value=""></option>
+<option value="today">Today</option>
+<option value="yesterday">Yesterday</option>
+<option value="last_7d">Last 7 Days</option>
+<option value="last_14d">Last 14 Days</option>
+<option value="last_30d">Last 30 Days</option>
+<option value="last_90d">Last 90 Days</option>
+<option value="this_month">This Month</option>
+<option value="last_month">Last Month</option>
+
+</select>
+</div>    
+
 
 <div class="form-group">
 <label for="levelData">Select Level:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Level To Export Your Data"></span>
