@@ -363,6 +363,7 @@ html { height: 100%;}
 .hamburger:focus,
 .hamburger:active {
   outline: none;
+  cursor:pointer;
 }
 .hamburger.is-closed:before {
   content: '';
@@ -476,6 +477,22 @@ html { height: 100%;}
 }
 
 
+.formatCheckbox
+{
+cursor:pointer;
+font-size:12px;
+vertical-align:middle;
+}
+
+.formatCheckbox:hover
+{
+  opacity: 0.8;
+  text-decoration-style: dotted;
+  text-decoration-line: underline;
+  vertical-align:middle;
+}
+
+
 </style>
 
   <base target="_top">
@@ -486,12 +503,12 @@ html { height: 100%;}
         <nav class="navbar navbar-inverse navbar-fixed-top" id="sidebar-wrapper" role="navigation">
             <ul class="nav sidebar-nav nav-tabs">
                 <li class="sidebar-brand">
-                    <a href=''>
+                    <a href='https://www.digishuffle.com/blogs/cost-data-import-facebook-to-google-analytics/'>
                        Digishuffle
                     </a>
                 </li>
                 <li>
-                    <a href="#ads" data-toggle='tab' >Ads (GA Format)</a>
+                    <a href="#ads" data-toggle='tab' >Tool</a>
                 </li>
                 <li>
                     <a href="#credits" data-toggle='tab'>About</a>
@@ -521,8 +538,8 @@ html { height: 100%;}
            <? if(!getService().hasAccess()) { ?> 
                 <div class="row">
                     <div class="col-md-12 col-lg-12">
-                    <p style="font-size:25px;">Features:</p>
-                   <ul>
+                    <p style="font-size:22px;">Features:</p>
+                   <ul style="font-size:13px;">
                    <li>Facebook Ads Export</li>
                    <li>Unlimited Rows</li>
                    <li>UTM Export Feature</li>
@@ -536,6 +553,8 @@ html { height: 100%;}
      <div class="row">
     <div class="col-md-12" align='center'>
     <a class="loginBtn loginBtn--facebook btn btn-info" href='<?=getService().getAuthorizationUrl()?>' target='_blank'>Authorize Facebook</a>
+    <br />
+    <span style='font-size:11px;'>Note: Before Authorizing, add the valid oAuth redirect URI in Facebook App.</span>
     </div>
     </div>
     
@@ -582,22 +601,26 @@ html { height: 100%;}
 <option value="last_90d">Last 90 Days</option>
 <option value="this_month">This Month</option>
 <option value="last_month">Last Month</option>
-
 </select>
+
+<!-- Default checked -->
+<div class="custom-control custom-checkbox">
+  <input type="checkbox" class="custom-control-input" id="splitByDate">
+  <label class="custom-control-label formatCheckbox" for="splitByDate">Split By Date</label>
+</div>
+
 </div>    
+
 
 
 <div class="form-group">
 <label for="levelData">Select Level:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Level To Export Your Data"></span>
 <select id="levelData" style="width: 100%">
- <? var data = preDefinedVariables() ?>
- <? if (data != false) { ?>
-<? data = data['adAccountLevels'] ?>
+ <? var data = ACCOUNTDATA.getUIFields(ACCOUNTDATA.adAccountLevels) ?>
+ <? if (data.length > 0) { ?>
 <? for (i=0; i<data.length; i++) { ?>
-    <option value="<?= data[i] ?>"><?= data[i] ?></option>
+ <option value="<?= data[i]['id'] ?>"><?= data[i]['text'] ?></option>
    <? } ?>
-
- 
  <? } ?>
 
    </select>
@@ -607,14 +630,11 @@ html { height: 100%;}
 <div class="form-group">
 <label for="fieldsData">Select Fields:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Fields To Export"></span>
 <select id="fieldsData" style="width: 100%" multiple>
- <? var data = preDefinedVariables() ?>
- <? if (data != false) { ?>
-<? data = data['adAccountUIFields'] ?>
+<? var data = ACCOUNTDATA.getUIFields(ACCOUNTDATA.adAccountUIFields) ?>
+ <? if (data.length > 0) { ?>
 <? for (i=0; i<data.length; i++) { ?>
-    <option value="<?= data[i] ?>"><?= data[i] ?></option>
+ <option value="<?= data[i]['id'] ?>"><?= data[i]['text'] ?></option>
    <? } ?>
-
- 
  <? } ?>
 
    </select>
@@ -622,8 +642,8 @@ html { height: 100%;}
 
 <!-- Default checked -->
 <div class="custom-control custom-checkbox">
-  <input type="checkbox" class="custom-control-input" id="ga_upload_format" checked>
-  <label class="custom-control-label" for="ga_upload_format">GA Upload Format</label>
+  <input type="checkbox" class="custom-control-input" id="ga_upload_format">
+  <label class="custom-control-label formatCheckbox" for="ga_upload_format">GA Upload Format</label>
 </div>
 <br />
 
@@ -751,8 +771,32 @@ var endDate = $('#endDate').val()
 var fields = $('#fieldsData').val();
 var levels = $('#levelData').val();
 var isGaUpload = $('#ga_upload_format').prop('checked');
+var splitByDate = $('#splitByDate').prop('checked');
 fields=fields.join(',')
-google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(accountId, levels, fields, '', startDate, endDate, <?=preDefinedVariables()['source'] ?> , <?=preDefinedVariables()['medium'] ?>, <?=preDefinedVariables()['pos'] ?>, <?=preDefinedVariables()['limit'] ?>,isGaUpload)
+
+var exportDataObject = {
+facebookData : {
+facebookAccountId:accountId,
+facebookLevel:levels,
+facebookFields:fields
+},
+dateData: {
+preDefinedRage: '',
+startDate:startDate,
+endDate:endDate,
+splitByDate:splitByDate
+},
+additionalData:{
+isGaUpload:isGaUpload,
+source:<?= ACCOUNTDATA['additionalData']['source'] ?>,
+medium:<?=ACCOUNTDATA['additionalData']['medium']?>,
+pos:<?=ACCOUNTDATA['additionalData']['pos']?>,
+limit:<?=ACCOUNTDATA['additionalData']['limit']?>
+},
+callFrom:'ui'
+}
+google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(exportDataObject)
+
 })
 
 function stopProgress(){
