@@ -1,55 +1,37 @@
 /* Facebook Reporting & Cost Data Upload in Google Analytics 
- * Description: Exports Facebook (API v3.2) Ads Data in Google Sheets & Uploads it To Google Analytics.
+ * Description: Exports Facebook Ads Data in Google Sheets & Uploads it To Google Analytics.
  * @Ritwikga www.Digishuffle.com
  *
- * Updated: 09-03-2019
- * - SplitByDate Feature
- * - oAuth Redirect UI
- * - Parser Updated
+ * Updated: 21-05-2019
+ * - Breakdown Feature
+ * - Data Import Alerts
+ * - UI Improvements & Bug Fixes
  *
- * Updated: 18-12-2018
- * - Latest Version v3.2
- * - Date Range Functionality
- * - Bug Fixes
- *
- * Updated: 26-08-2018
- * - Version v3.1
- * - Facebook Export Functionality
- * - Level Added in UI
- *
- * Updated: 26-01-2018
- * - Currency Multiplier
- * - Emailers Feature
- * - UI Fix
- *
- * Updated: 18-11-2017
- * - Error Reporting
- * - v2.11
- *
- * Updated: 10-10-2017
- * - Facebook UTM Feature Added
- * - Access to Facebook Ad Level Data Parameters
- * - Facebook Export Limit - Full Quota 
+ * Recent Updates @https://github.com/RitwikGA/FacebookReportingTool/
  */
+
 ///// Facebook Details ///////
 
 var CLIENT_ID = '';     // Insert App ID                                        
 
 var CLIENT_SECRET = '';   // Insert App Secret
 
-var FB_AD_ACCOUNT_ID = ''   //Ad Account Id
+var FB_AD_ACCOUNT_ID = '';   //Ad Account Id
 
-var FB_FIELDS = 'campaign_name,clicks,spend,impressions'; 
-// More FB_FIELDS at https://developers.facebook.com/docs/marketing-api/insights/parameters 
+// More fields at https://developers.facebook.com/docs/marketing-api/insights/parameters 
+var FB_FIELDS = 'campaign_name,clicks,spend,impressions,date_start'; 
+
+// More brekadowns at https://developers.facebook.com/docs/marketing-api/insights/breakdowns 
+var FB_BREAKDOWN = '';     
 
 var FB_LEVEL = 'campaign'; // ad,adset,campaign,account 
 
 var pos = [1,1]     //Spreadsheet Cell Position
 
-var DATE_RANGE='';    //today, yesterday, this_month, last_month, this_quarter, etc 
-//More DATE_RANGE at https://developers.facebook.com/docs/marketing-api/insights/parameters (date_preset paramteter)
+// More DATE_RANGE at https://developers.facebook.com/docs/marketing-api/insights/parameters (date_preset paramteter)
+var DATE_RANGE='last_7d';    //today, yesterday, this_month, last_month, this_quarter, etc 
 
-//// To use below date range, make sure DATE_RANGE='' ///// 
+// To use below date range, make sure DATE_RANGE='' // 
 var start_date='2019-01-01';                // custom date range
 var end_date='2019-01-30';
 var splitByDate = false;
@@ -57,20 +39,18 @@ var splitByDate = false;
 var limit = 100;      //Facebook Graph API Limit per request
 
 
-
-//// Facebook Ad URL UTMs values (Only for GA Upload Format) /////
+// Facebook Ad URL UTMs values (Only for GA Upload Format) //
 var isGaUpload = false                    // set to True, to export GA upload compatible data
 var SOURCE = "facebook"                   // source, if not specified in Facebook Tracking URL Params utm_source
 var MEDIUM = "cpc"                        // medium, if not specified in Facebook Tracking URL Params utm_medium
 
-//// Google Analytics Data (Only for GA Upload Format)/////////
+// Google Analytics Data (Only for GA Upload Format) //
 var ACCOUNT_ID = "";                      //Account ID
-var PROPERTY_ID = "";                     //Property ID
-var DATASET_ID = "";                      //Data set upload ID
+var PROPERTY_ID = "";                //Property ID
+var DATASET_ID = "";        //Data set upload ID
  
-//// CurrenyMultiplier (Only for GA Upload Format)////////
-
-var currenyMultiplier = 10;               //Will Multipy 'Spend' Field. Use it for currency conversions. (Only for GA upload)
+// CurrenyMultiplier (Only for GA Upload Format) //
+var currenyMultiplier = 1;       //Will Multipy 'Spend' Field. (Currency converter only for GA upload)
 
 
 //// Emailers (Only for GA Upload Format)////////////  
@@ -91,16 +71,19 @@ adAccountUIFields : ['account_currency','account_id','account_name','ad_name','a
 'cpm','date_start','date_stop','reach','spend','unique_clicks'],
    /// The Columns To Be Populated in the Fields Box in the UI.
 adAccountLevels : ['ad','adset','campaign','account'], /// The Columns To Be Populated in the Fields Box in the UI.
+adAccountBreakdowns : ['age','country','gender','impression_device','product_id','region','dma','frequency_value','hourly_stats_aggregated_by_advertiser_time_zone',
+                       'hourly_stats_aggregated_by_audience_time_zone','publisher_platform','platform_position','device_platform'],  
 getUIFields : function(y) {return y.map(function(i){return {id:i,text:i.split('_').map(function(j){return j.charAt(0).toUpperCase()+j.slice(1)}).join(' ')}})},
 getUIHeaders : function(k){return k.map(function(i){return i.split('_').map(function(j){return j.charAt(0).toUpperCase()+j.slice(1)}).join(' ')})},
 facebookData : {facebookAccountId:FB_AD_ACCOUNT_ID,
                 facebookLevel:FB_LEVEL,
-                facebookFields:FB_FIELDS},
+                facebookFields:FB_FIELDS,
+                facebookBreakdowns:FB_BREAKDOWN},
 
 dateData : {
-	preDefinedRage: DATE_RANGE,
-	startDate : start_date,
-	endDate: end_date,
+  preDefinedRage: DATE_RANGE,
+  startDate : start_date,
+  endDate: end_date,
     splitByDate:splitByDate
 },                
 
@@ -116,12 +99,6 @@ limit:limit
 function showBar() {
 var html=HtmlService.createTemplateFromFile('digiSideBar').evaluate().setTitle("Facebook Reporting Tool").setWidth(300)
 SpreadsheetApp.getUi().showSidebar(html)
-}
-
-
-function clear(){
-var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
-sheet.clear()
 }
 
 function facebookData()
@@ -177,7 +154,7 @@ function makeRequest(ACCOUNTDATAOBJECT) {
 if(!ACCOUNTDATAOBJECT['callFrom']) {ACCOUNTDATAOBJECT = ACCOUNTDATA}  
 
  var fbRequest = getService(); 
- var requestEndpoint = "https://graph.facebook.com/v3.2/act_"+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"/insights?"
+ var requestEndpoint = "https://graph.facebook.com/v3.3/act_"+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"/insights?"
  var param = {'limit':ACCOUNTDATAOBJECT['additionalData']['limit'],'level': ACCOUNTDATAOBJECT['facebookData']['facebookLevel']}
  
  if(ACCOUNTDATAOBJECT['additionalData']['isGaUpload']) {
@@ -186,13 +163,17 @@ if(!ACCOUNTDATAOBJECT['callFrom']) {ACCOUNTDATAOBJECT = ACCOUNTDATA}
  } else {
  param['fields'] = ACCOUNTDATAOBJECT['facebookData']['facebookFields']
  }
+
+if(param['fields'] == ''){SpreadsheetApp.getUi().alert("Enter The Fields");return}
   
+if(ACCOUNTDATAOBJECT['facebookData']['facebookBreakdowns'] != ''){param['breakdowns'] = ACCOUNTDATAOBJECT['facebookData']['facebookBreakdowns'] }  
 if(ACCOUNTDATAOBJECT['dateData']['splitByDate']){param['time_increment'] = '1'}  
+
 if(ACCOUNTDATAOBJECT['dateData']['preDefinedRage']!="")
 { param['date_preset'] = ACCOUNTDATAOBJECT['dateData']['preDefinedRage'] ;}
 else if(ACCOUNTDATAOBJECT['dateData']['startDate']!=""&&ACCOUNTDATAOBJECT['dateData']['endDate']!="") 
 { param['time_range[since]']=ACCOUNTDATAOBJECT['dateData']['startDate'];param['time_range[until]']=ACCOUNTDATAOBJECT['dateData']['endDate'];}
-else {  SpreadsheetApp.getUi().alert("Enter Correct Date Range!!")}
+else {  SpreadsheetApp.getUi().alert("Enter Correct Date Range!!");return}
  
 
 var response = UrlFetchApp.fetch(requestEndpoint + jsonToQuery(param), 
@@ -208,12 +189,12 @@ else{SpreadsheetApp.getUi().alert(parseData.error.message)}
 return
 }
 
-if(parseData.data.length == 0)
-{SpreadsheetApp.getUi().alert('No Facebook Data For The Applied Date Range'); return;}  
+//if(parseData.data.length == 0)
+//{SpreadsheetApp.getUi().alert('No Facebook Data For The Applied Date Range'); return;}  
   
   
-if(ACCOUNTDATAOBJECT['additionalData']['isGaUpload']){
-var utms_endpoint = "https://graph.facebook.com/v3.2/act_"+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
+if(ACCOUNTDATAOBJECT['additionalData']['isGaUpload'] && parseData.data.length > 0){
+var utms_endpoint = "https://graph.facebook.com/v3.3/act_"+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"/ads?fields=adcreatives%7Burl_tags%7D&limit="+5000
 var utms_ads = UrlFetchApp.fetch(utms_endpoint, 
 {headers: {'Authorization': 'Bearer ' + fbRequest.getAccessToken()},muteHttpExceptions : true}) 
 
@@ -231,8 +212,10 @@ var parsed_utms_data = nextTokenData(parsed_utms)
  
 
 try{
-var parseData = nextTokenData(parseData)
+parseData = nextTokenData(parseData)
 var fieldArray = param['fields'].split(",")
+if(param['breakdowns']){fieldArray = fieldArray.concat(param['breakdowns'].split(","))}
+
 var headers = ACCOUNTDATA.getUIHeaders(fieldArray)
 var sheet= SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];  
 
@@ -245,21 +228,25 @@ pos = ACCOUNTDATAOBJECT['additionalData']['pos'].split(",")
 if(sheet.getLastRow() > 0 && sheet.getLastColumn() > 0)
 {sheet.getRange(pos[0],pos[1],sheet.getLastRow(),sheet.getLastColumn()).clear()}
 
-
 var finalParsedOutput = []    
-if(ACCOUNTDATAOBJECT['additionalData']['isGaUpload']){ finalParsedOutput=parser(parseData,parsed_utms_data,ACCOUNTDATAOBJECT['additionalData']['source'],ACCOUNTDATAOBJECT['additionalData']['medium'])}
+
+if(ACCOUNTDATAOBJECT['additionalData']['isGaUpload']){ 
+if(parseData.data.length > 0 ){finalParsedOutput=parser(parseData,parsed_utms_data,ACCOUNTDATAOBJECT['additionalData']['source'],ACCOUNTDATAOBJECT['additionalData']['medium'])}
+  else {finalParsedOutput.push([])}  
+}
 else{
 finalParsedOutput = parserNonGA(parseData, fieldArray);
 finalParsedOutput.unshift(headers);
-
+  
 var cell = sheet.getRange(pos[0],pos[1],1,finalParsedOutput[0].length)  
 cell.setFontWeight("bold")
 cell.setBorder(false, false, true, false, false, false,"black",SpreadsheetApp.BorderStyle.DOUBLE)
 }
+  
+if(finalParsedOutput[0].length > 0) {sheet.getRange(pos[0], pos[1], finalParsedOutput.length, finalParsedOutput[0].length).setValues(finalParsedOutput)}
 
-sheet.getRange(pos[0], pos[1], finalParsedOutput.length, finalParsedOutput[0].length).setValues(finalParsedOutput)
-SpreadsheetApp.getUi().alert("REPORTS EXPORTED FOR DATE RANGE: "+ACCOUNTDATAOBJECT['dateData']['startDate']+" TO "+ACCOUNTDATAOBJECT['dateData']['endDate']+"\n ACCOUNT_ID: "+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"\n ROWS: "+finalParsedOutput.length);
-
+var statusDescription = "DATE: "+ACCOUNTDATAOBJECT['dateData']['startDate']+" TO "+ACCOUNTDATAOBJECT['dateData']['endDate']+"<br /> ACCOUNT_ID: "+ACCOUNTDATAOBJECT['facebookData']['facebookAccountId']+"<br /> ROWS: "+finalParsedOutput.length;
+return {status:'success', description:statusDescription}
 } catch (e) {Logger.log(e) }
   
 
@@ -268,30 +255,21 @@ SpreadsheetApp.getUi().alert("REPORTS EXPORTED FOR DATE RANGE: "+ACCOUNTDATAOBJE
 
 function nextTokenData(parseData)
 {
-  var fbRequest = getService();
+if(parseData.data.length == 0) {return parseData}    
+var fbRequest = getService();
 if(parseData.paging.next != undefined)
 { 
- var parsedata_pg = parseData;
- while (true)
- {
-  var response = UrlFetchApp.fetch(parsedata_pg.paging.next, 
-  {
-    headers: {
-      'Authorization': 'Bearer ' + fbRequest.getAccessToken()
-  },
-    muteHttpExceptions : true
-  })
-
- 
+var parsedata_pg = parseData;
+while (true)
+{
+var response = UrlFetchApp.fetch(parsedata_pg.paging.next, 
+  {headers: {'Authorization': 'Bearer ' + fbRequest.getAccessToken()},muteHttpExceptions : true})
 parsedata_pg = JSON.parse(response)
 parseData.data = parseData.data.concat(parsedata_pg.data)
-  
 if(parsedata_pg.paging.next == undefined) 
 { break;}
-}
-}
+}}
 return parseData
-
 }
 
 function AdIds(id, parsed_utms_data)
@@ -391,7 +369,7 @@ function getService() {
   return OAuth2.createService('Facebook')
       // Set the endpoint URLs.
       .setAuthorizationBaseUrl('https://www.facebook.com/dialog/oauth')
-      .setTokenUrl('https://graph.facebook.com/v3.2/oauth/access_token')
+      .setTokenUrl('https://graph.facebook.com/v3.3/oauth/access_token')
 
       // Set the client ID and secret.
       .setClientId(CLIENT_ID)
@@ -430,15 +408,15 @@ function reset() {
   var service = getService();
   service.reset();
   showBar()
-  SpreadsheetApp.getUi().alert("Token Reset Success!!")
+  SpreadsheetApp.getUi().alert("Log Out Success!!")
 }
 
 function successUI(isAuth){
 
  if(isAuth){
-  var UI=HtmlService.createTemplate("<b><span style='color:green'>Authorization Successful</span></b>").evaluate()
+  var UI=HtmlService.createHtmlOutput("<b><span style='color:green'>Authorization Successful</span></b>")
   SpreadsheetApp.getUi().showModalDialog(UI, "Authorization Status") } else
-  {var UI=HtmlService.createTemplate("<b><span style='color:red'>Authorization Fail</span></b>").evaluate()
+  {var UI=HtmlService.createHtmlOutput("<b><span style='color:red'>Authorization Fail</span></b>")
     SpreadsheetApp.getUi().showModalDialog(UI, "Authorization Status")}
 }
 
@@ -446,21 +424,20 @@ function successUI(isAuth){
 function adAccounts(){
 
  var fbRequest = getService(); 
-  var addaccounts_endpoint = "https://graph.facebook.com/v3.2/me?fields=adaccounts.limit(100)%7Bname,account_id%7D" 
+  var addaccounts_endpoint = "https://graph.facebook.com/v3.3/me?fields=adaccounts.limit(100)%7Bname,account_id%7D" 
  
   var adAccountInfo = UrlFetchApp.fetch(addaccounts_endpoint, 
   {headers: {'Authorization': 'Bearer ' + fbRequest.getAccessToken()},muteHttpExceptions : true}) 
   
   var parsedadAccountInfo = JSON.parse(adAccountInfo)
-  Logger.log(parsedadAccountInfo)
   if(parsedadAccountInfo.hasOwnProperty('error') || !parsedadAccountInfo.adaccounts)
   {SpreadsheetApp.getUi().alert('ERROR: '+parsedadAccountInfo['error']['message']);return false} 
   else {
-  var adAccountFB = nextTokenData(parsedadAccountInfo.adaccounts,100)
+  var adAccountFB = nextTokenData(parsedadAccountInfo.adaccounts,200)
   var parsed_adurls = parsedadAccountInfo;
   parsed_adurls['adaccounts'] = adAccountFB
 }
-  Logger.log(parsed_adurls.adaccounts.data)
+
   return { 'facebookAccountData':parsed_adurls.adaccounts.data } 
 }
 
@@ -3075,4 +3052,3 @@ function copy(src, target, obj) {
     });
   }
 }.call(this));
-
