@@ -1,6 +1,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            
 
 <script src="https://cdn.jsdelivr.net/momentjs/2.14.1/moment-with-locales.min.js"></script>
 
@@ -8,11 +11,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css">
 
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css">
-
-
 
 
 <script>
@@ -56,14 +56,16 @@ $('#datepicker').datepicker({
     todayBtn: "linked"
 });
 
-
-
 $('#accountData').selectize({
     sortField: 'text'
 });
 
 
 $('#fieldsData').selectize({
+ maxItems: 12
+});
+
+$('#breakdownData').selectize({
  maxItems: 12
 });
 
@@ -151,6 +153,12 @@ $('#endDate').datepicker('update', e);
 
 </script>   
  <style>
+ul {
+  list-style: none;
+}
+ul li:before {
+  content: '✓ ';
+}
 
 /* Shared */
 .loginBtn {
@@ -204,7 +212,7 @@ $('#endDate').datepicker('update', e);
 
 
 .nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
-    background-color: #337ab7;
+    background-color: #a8a8a9;
     color:#ffffff;
 }
 //1
@@ -259,7 +267,7 @@ html { height: 100%;}
 
 #page-content-wrapper {
     width: 100%;
-    padding-top: 70px;
+    padding-top: 55px;
 }
 
 #wrapper.toggled #page-content-wrapper {
@@ -327,7 +335,7 @@ html { height: 100%;}
 .sidebar-nav li.open a:focus{
     color: #ffffff;
     text-decoration: none;
-    background-color: #03A9F4;
+    background-color: #bfbfbf;
 }
 
 .sidebar-nav > .sidebar-brand {
@@ -349,8 +357,8 @@ html { height: 100%;}
 /*-------------------------------*/
 
 .hamburger {
-  position: fixed;
-  top: 20px;  
+  position: absolute;
+  top: 10px;  
   z-index: 999;
   display: block;
   width: 32px;
@@ -492,7 +500,32 @@ vertical-align:middle;
   vertical-align:middle;
 }
 
+.selectize-control.single .selectize-input, .selectize-control.single .selectize-input input, label,
+.selectize-dropdown, .selectize-dropdown.form-control {
+    font-size: 12px;
+}
 
+.selectize-control.multi .selectize-input>div, .btn {
+   font-size: 12px;
+   border-radius: 0px;
+   border: 1px solid #9e9e9e;
+}
+
+.selectize-input, .selectize-input.focus {
+border-radius: 0px;
+}
+.glyphicon {
+vertical-align: middle;
+}
+
+.alert, .close {
+   font-size: 12px;
+   border-radius: 0px;
+}
+
+.close {
+opacity: 0.4
+}
 </style>
 
   <base target="_top">
@@ -540,8 +573,9 @@ vertical-align:middle;
                     <div class="col-md-12 col-lg-12">
                     <p style="font-size:22px;">Features:</p>
                    <ul style="font-size:13px;">
-                   <li>Facebook Ads Export</li>
-                   <li>Unlimited Rows</li>
+                   <li>Facebook Ads Import</li>
+                   <li>Full Quota Usage</li>
+                   <li>Unlimited Data Rows</li>
                    <li>UTM Export Feature</li>
                    <li>Currency Converter</li>
                    <li>Scheduling Feature</li>
@@ -559,8 +593,6 @@ vertical-align:middle;
     </div>
     
     <? } else { ?>
-    
-    <p style='color:green'>Authorization Success</p>
     
 <div class="form-group">
 <label for="accountData">Select Account:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Account To Export"></span>
@@ -624,6 +656,7 @@ vertical-align:middle;
  <? } ?>
 
    </select>
+<div style="text-align:right;"><span style="font-size:12px;"><a href='https://developers.facebook.com/docs/marketing-api/insights/parameters#param'>Learn more</a></span></div>   
 </div>    
 
 
@@ -638,7 +671,23 @@ vertical-align:middle;
  <? } ?>
 
    </select>
+<div style="text-align:right;"><span style="font-size:12px;"><a href='https://developers.facebook.com/docs/marketing-api/insights/parameters'>Learn more</a></span></div>   
 </div>    
+
+
+<div class="form-group">
+<label for="breakdownData">Select Breakdowns:</label><span class="glyphicon glyphicon-question-sign help"  title="Select Breakdown To Export"></span>
+<select id="breakdownData" style="width: 100%" multiple>
+<? var data = ACCOUNTDATA.getUIFields(ACCOUNTDATA.adAccountBreakdowns) ?>
+ <? if (data.length > 0) { ?>
+<? for (i=0; i<data.length; i++) { ?>
+ <option value="<?= data[i]['id'] ?>"><?= data[i]['text'] ?></option>
+   <? } ?>
+ <? } ?>
+
+   </select>
+<div style="text-align:right;"><span style="font-size:12px;"><a href='https://developers.facebook.com/docs/marketing-api/insights/breakdowns'>Learn more</a></span></div>
+</div>
 
 <!-- Default checked -->
 <div class="custom-control custom-checkbox">
@@ -649,14 +698,21 @@ vertical-align:middle;
 
 
 <div class="form-group">
-<button class='btn btn-primary' id='exportData'>Export</button>
+<span><button class='btn btn-primary' id='exportData'>Export</button></span>
+<span style="margin-left: 116px;"><button class='btn btn-secondary' id='logout'>Log Out</button></span>
 </div>
 
 <div class="form-group" id='progressBar' style="display:none">
 <div class="progress">
   <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id='bar'></div>
 </div>
-    </div>
+</div>
+
+<div class="alert alert-success" id="statusAlert" style="display:none;">
+    <button type="button" class="close" data-dismiss="alert">x</button>
+    <span><strong>Success!</strong></span><br />
+    <span id='statusdescription'></span>
+</div>
     <? } ?>
     
             </div> <!-- Container -->
@@ -697,7 +753,7 @@ vertical-align:middle;
             <br />
             <br />
             <p><b>Privacy Policy:</b></p>
-            <p>We don't collect any data at our end. We try to keep it the script updated with latest release. But we cannot guarantee or will not be responsible for any damage, if any, resulting from the addon</p>
+            <p>We don't collect any data at our end. We try to keep the script updated with latest release. But we cannot guarantee or will not be responsible for any damage, if any, resulting from the addon</p>
             
             </div>
                 </div>
@@ -721,12 +777,13 @@ vertical-align:middle;
                 <div class="row">
                     <div class="col-md-12 col-xs-12">
             <p><b>DigiXport - Reporting Add-On:</b></p>
-            <p>If you like this addon, kindly check out our <a href="https://www.digishuffle.com/digixport/">premium reporting tool</a>. If you are a digital agency or freelancer running multiple campaigns for clients, you'll really find these features helpful.</p>
-            <ul>
-            <li>Facebook,Bing & Adwords Connectors</li>
-            <li>Multiple Account Export</li>
-            <li>Save & Export Mutiple Queries</li>
-            <li>Schedule Multiple Queries</li>
+            <p>If you like this addon, kindly check out our <a href="https://www.digishuffle.com/digixport/">premium reporting tool</a>. If you are a digital agency or freelancer running multiple accounts on several ad platforms, you'll really find these features helpful.</p>
+            <ul style="padding-left:15px;">
+            <li>Facebook,Bing & Google Ads/Analytics Connectors</li>
+            <li>Multiple Accounts Import</li>
+            <li>Unlimited Data Rows</li>
+            <li>Save & Import Multiple Queries</li>
+            <li>Schedule Multiple Reports</li>
             <li>Currency Multiplier / GA Uploader</li>
             <li>& more...</li>
             </ul>
@@ -742,8 +799,6 @@ vertical-align:middle;
         </div> 
         <!-- DigiXport -->
         
-        
-        
         </div>
         <!-- /#page-content-wrapper -->
 
@@ -752,6 +807,11 @@ vertical-align:middle;
 <div align="center" class="col-md-12">
 <a href='https://www.digishuffle.com/blogs/cost-data-import-facebook-to-google-analytics/'><img src="https://www.digishuffle.com/wp-content/uploads/2017/06/Logo-Black-3dGraph.png" style="height:40px;width:60px">
 </a><p style="font-size:12px"> Digishuffle - Analytics </p>
+<? if(getService().hasAccess()) { ?>
+<p style='color:green;font-size:12px'>Authorized</p>
+<? } else { ?>
+<p style='color:red;font-size:12px'>Not Authorized</p>
+<? } ?>
 </div>
 
 
@@ -763,22 +823,27 @@ vertical-align:middle;
 <script>
 $('#exportData').on('click',function(){
 $(this).attr("disabled", "disabled");
+$('#statusAlert').hide();
 $('#progressBar').show()
 progressBar();
+$("html, body").animate({ scrollTop: $(document).height() }, "slow");
 var accountId = $('#accountData').val();
 var startDate = $('#startDate').val();
 var endDate = $('#endDate').val()
 var fields = $('#fieldsData').val();
+var breakdowns = $('#breakdownData').val();
 var levels = $('#levelData').val();
 var isGaUpload = $('#ga_upload_format').prop('checked');
 var splitByDate = $('#splitByDate').prop('checked');
-fields=fields.join(',')
+fields=fields.join(',');
+breakdowns=breakdowns.join(',');
 
 var exportDataObject = {
 facebookData : {
 facebookAccountId:accountId,
 facebookLevel:levels,
-facebookFields:fields
+facebookFields:fields,
+facebookBreakdowns:breakdowns
 },
 dateData: {
 preDefinedRage: '',
@@ -795,9 +860,29 @@ limit:<?=ACCOUNTDATA['additionalData']['limit']?>
 },
 callFrom:'ui'
 }
-google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).makeRequest(exportDataObject)
+google.script.run.withSuccessHandler(displayStatus).withFailureHandler(stopProgress).makeRequest(exportDataObject)
 
 })
+
+$('#logout').on('click',function(){
+$(this).attr("disabled", "disabled");
+$('#progressBar').show()
+progressBar();
+google.script.run.withSuccessHandler(stopProgress).withFailureHandler(stopProgress).reset()
+})
+
+
+function displayStatus(statusObj){
+stopProgress();
+
+if(statusObj['status'] === 'success')
+{
+$('#statusdescription').html(statusObj['description']);
+$('#statusAlert').fadeIn(500)
+setTimeout(function(){ $('#statusAlert').fadeOut(500) }, 2000);
+}
+
+}
 
 function stopProgress(){
 $('#exportData').removeAttr("disabled");   
